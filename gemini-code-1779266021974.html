@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farevefarm - ซื้อคืนและตรวจสภาพสินค้า</title>
+    <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;600&family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1F3151; /* Estate Blue */
+            --accent-coarse-wool: #11151D;
+            --accent-foggy: #B4C4D3;
+            --accent-elevated: #EAE7DF;
+            --white: #FFFFFF;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Work Sans', 'Anuphan', sans-serif; }
+        body { background-color: var(--accent-elevated); color: var(--accent-coarse-wool); padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: var(--white); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        header { background: var(--primary-blue); color: var(--white); padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        h1, h2, h3 { font-weight: 600; }
+        
+        .limit-box { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 6px; }
+        .btn { background: var(--primary-blue); color: var(--white); border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .btn:hover { background: #2d456e; }
+        .btn-warning { background: #d97706; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .card { border: 1px solid var(--accent-foggy); padding: 20px; border-radius: 8px; background: var(--white); }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid var(--accent-foggy); border-radius: 6px; font-size: 16px; }
+
+        /* Table Styling */
+        .table-responsive { overflow-x: auto; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--accent-foggy); }
+        th { background: var(--primary-blue); color: var(--white); }
+
+        /* Checklist Styles (Strictly following image layout) */
+        .checklist-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+        .chk-box { border: 1px solid #ddd; padding: 10px; border-radius: 6px; }
+        .chk-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px id #eee; }
+
+        .condition-badge { padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 14px; text-align: center; display: inline-block; }
+        .cond-new { background: #def7ec; color: #03543f; }
+        .cond-kept { background: #feecdc; color: #b45309; }
+        .cond-like { background: #e1effe; color: #1e429f; }
+        .cond-used { background: #f3f4f6; color: #374151; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h2>FAREVEFARM</h2>
+            <p>ระบบจัดการการรับซื้อและตรวจสภาพสินค้าภายใน</p>
+        </div>
+        <div class="limit-box">
+            <span>วงเงินรับซื้อสูงสุดวันนี้: </span>
+            <strong id="displayLimit">2,000,000</strong> บาท 
+            <button class="btn btn-warning" style="padding:2px 8px; margin-left:10px;" onclick="adjustLimit()">แก้ไขวงเงิน</button>
+        </div>
+    </header>
+
+    <div class="grid-2">
+        <div class="card">
+            <h3>ลงทะเบียนนัดหมายลูกค้า</h3>
+            <hr style="margin:10px 0; border-color: var(--accent-foggy);">
+            <form id="apptForm" onsubmit="saveAppointment(event)">
+                <div class="form-group">
+                    <label>ชื่อลูกค้า</label>
+                    <input type="text" id="custName" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>เบอร์โทรติดต่อ</label>
+                    <input type="tel" id="custPhone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>วันที่นัดหมาย</label>
+                    <input type="date" id="apptDate" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>เวลานัดหมาย (รายชั่วโมง)</label>
+                    <select id="apptTime" class="form-control">
+                        <option value="09:00">09:00 น.</option>
+                        <option value="10:00">10:00 น.</option>
+                        <option value="11:00">11:00 น.</option>
+                        <option value="12:00">12:00 น.</option>
+                        <option value="13:00">13:00 น.</option>
+                        <option value="14:00">14:00 น.</option>
+                        <option value="15:00">15:00 น.</option>
+                        <option value="16:00">16:00 น.</option>
+                        <option value="17:00">17:00 น.</option>
+                        <option value="18:00">18:00 น.</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width:100%;">บันทึกคิวนัดหมาย</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>ตารางนัดหมายประจำวัน</h3>
+                <input type="date" id="filterDate" class="form-control" style="width:auto;" onchange="loadAppointments()">
+            </div>
+            <hr style="margin:10px 0; border-color: var(--accent-foggy);">
+            
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>เวลา</th>
+                            <th>ชื่อลูกค้า</th>
+                            <th>จำนวน</th>
+                            <th>ยอดโอน (บาท)</th>
+                            <th>สถานะรับ / โอน</th>
+                            <th>จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apptTableBody">
+                        </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 15px; text-align: right;">
+                <strong>ยอดรวมรับซื้อวันนี้: <span id="dayTotalAmount">0</span> / <span id="dayMaxLimit">2,000,000</span> บาท</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" id="checklistWindow" style="display:none; border-top: 4px solid var(--primary-blue);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>แผงตรวจรับและประเมินสภาพสินค้า: <span id="activeCustomerName"></span></h3>
+            <button class="btn btn-warning" onclick="addNewProductItem()">+ เพิ่มสินค้าที่ส่งมาจริง</button>
+        </div>
+        
+        <div id="productItemsContainer">
+            </div>
+    </div>
+</div>
+
+<script>
+    // สถาปัตยกรรม State Management ชั่วคราวบนหน้าเว็บ (จะ Sync ไป Google Sheets)
+    let dailyLimit = 2000000;
+    let appointments = [];
+    let currentApptId = null;
+    const webAppUrl = "ใส่_URL_WEB_APP_ที่_DEPLOY_จาก_APPS_SCRIPT_ตรงนี้";
+
+    window.onload = function() {
+        document.getElementById('apptDate').valueAsDate = new Date();
+        document.getElementById('filterDate').valueAsDate = new Date();
+        setupMockData();
+        loadAppointments();
+    };
+
+    function adjustLimit() {
+        let newLimit = prompt("กรุณาระบุวงเงินรับซื้อสูงสุดใหม่สำหรับกรณีฉุกเฉิน (บาท):", dailyLimit);
+        if (newLimit && !isNaN(newLimit)) {
+            dailyLimit = Number(newLimit);
+            document.getElementById('displayLimit').innerText = dailyLimit.toLocaleString();
+            document.getElementById('dayMaxLimit').innerText = dailyLimit.toLocaleString();
+            checkLimitWarning();
+        }
+    }
+
+    function setupMockData() {
+        // Mock ข้อมูลเริ่มต้นเพื่อแสดงตัวอย่างการทำงานระบบภายใน
+        appointments = [
+            {id: "APP_1", name: "คุณสมชาย มั่งคั่ง", phone: "0812345678", date: document.getElementById('filterDate').value, time: "10:00", totalItems: 1, totalAmount: 45000, receiveStatus: "รับแล้ว", paymentStatus: "โอนแล้ว"}
+        ];
+    }
+
+    function loadAppointments() {
+        const filterDate = document.getElementById('filterDate').value;
+        const tbody = document.getElementById('apptTableBody');
+        tbody.innerHTML = "";
+        let totalDaySpend = 0;
+
+        const filtered = appointments.filter(a => a.date === filterDate);
+        filtered.forEach(appt => {
+            totalDaySpend += appt.totalAmount;
+            tbody.innerHTML += `
+                <tr>
+                    <td>${appt.time} น.</td>
+                    <td><b>${appt.name}</b><br><small>${appt.phone}</small></td>
+                    <td>${appt.totalItems} ชิ้น</td>
+                    <td>${appt.totalAmount.toLocaleString()}</td>
+                    <td>
+                        <select onchange="updateStatus('${appt.id}', 'receive', this.value)">
+                            <option ${appt.receiveStatus==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
+                            <option ${appt.receiveStatus==='รับแล้ว'?'selected':''}>รับแล้ว</option>
+                        </select><br>
+                        <select onchange="updateStatus('${appt.id}', 'payment', this.value)">
+                            <option ${appt.paymentStatus==='รอดำเนินการ'?'selected':''}>รอดำเนินการ</option>
+                            <option ${appt.paymentStatus==='โอนแล้ว'?'selected':''}>โอนแล้ว</option>
+                        </select>
+                    </td>
+                    <td><button class="btn" onclick="openChecklistWindow('${appt.id}', '${appt.name}')">ตรวจตั๋วสินค้า</button></td>
+                </tr>
+            `;
+        });
+        document.getElementById('dayTotalAmount').innerText = totalDaySpend.toLocaleString();
+        checkLimitWarning(totalDaySpend);
+    }
+
+    function checkLimitWarning(currentSpend = 0) {
+        if (currentSpend > dailyLimit) {
+            alert("⚠️ คำเตือน: ยอดรับซื้อรวมในขณะนี้เกินวงเงินสูงสุดที่ตั้งไว้แล้ว!");
+        }
+    }
+
+    function saveAppointment(e) {
+        e.preventDefault();
+        const newAppt = {
+            id: "APP_" + Date.now(),
+            name: document.getElementById('custName').value,
+            phone: document.getElementById('custPhone').value,
+            date: document.getElementById('apptDate').value,
+            time: document.getElementById('apptTime').value,
+            totalItems: 0,
+            totalAmount: 0,
+            receiveStatus: "รอดำเนินการ",
+            paymentStatus: "รอดำเนินการ"
+        };
+        appointments.push(newAppt);
+        // ส่งขึ้น Google Sheets (Async)
+        fetch(webAppUrl, { method: 'POST', body: JSON.stringify({action: 'saveAppointment', ...newAppt}) }).catch(err => console.log("Offline mode active"));
+        
+        loadAppointments();
+        document.getElementById('apptForm').reset();
+        document.getElementById('apptDate').valueAsDate = new Date();
+    }
+
+    function openChecklistWindow(apptId, custName) {
+        currentApptId = apptId;
+        document.getElementById('activeCustomerName').innerText = custName;
+        document.getElementById('checklistWindow').style.display = "block";
+        document.getElementById('productItemsContainer').innerHTML = "";
+        addNewProductItem(); // สร้างสินค้าชิ้นแรกให้ตรวจสอบทันที
+    }
+
+    // ฟังก์ชันรองรับกรณีลูกค้าแจ้งมา 1 ชิ้น แต่ส่งจริงหลายชิ้น สามารถกดเพิ่มชิ้นงานได้อิสระ
+    function addNewProductItem() {
+        const container = document.getElementById('productItemsContainer');
+        const itemCount = container.children.length + 1;
+        
+        const itemHtml = `
+            <div class="card" style="margin-top:15px; border: 1px dashed var(--primary-blue);" id="productItem_${itemCount}">
+                <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                    <div><strong>สินค้าชิ้นที่ #${itemCount}</strong></div>
+                    <div>ชื่อสินค้า: <input type="text" value="Loro Piana Summer Charm Walk" class="form-control" style="width:250px; display:inline-block;" id="pName_${itemCount}"></div>
+                    <div>Size/ปี: <input type="text" value="Size 39.5 ปี 03/2026" class="form-control" style="width:180px; display:inline-block;" id="pSize_${itemCount}"></div>
+                </div>
+
+                <div class="checklist-section">
+                    <div class="chk-box">
+                        <h4 style="color:var(--primary-blue)">หมวดรองเท้า (100 คะแนน)</h4>
+                        <div class="chk-row"><span>ทรงรองเท้า (ปกติ 20 / ไม่ปกติ 10)</span> <input type="number" value="20" max="20" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>อะไหล่ออกซิไดซ์/สนิม (ไม่มี 20 / มีจุด 10)</span> <input type="number" value="20" max="20" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>กาวซึม (ไม่มี 20 / มีจุด 10)</span> <input type="number" value="20" max="20" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>กลิ่น (ปกติ 10 / ไม่ปกติ 5)</span> <input type="number" value="10" max="10" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>เพชรหลุด (ไม่มี 10 / มีจุด 5)</span> <input type="number" value="10" max="10" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>ถลอก/เฟด/ขีด (ไม่มีรอย 10 / มีรอย 5)</span> <input type="number" value="10" max="10" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                        <div class="chk-row"><span>พื้น (ไม่มีรอย 10 / รอยเล็กน้อย 5)</span> <input type="number" value="10" max="10" class="form-control" style="width:60px;" onchange="calculateScore(${itemCount})"></div>
+                    </div>
+
+                    <div class="chk-box">
+                        <h4 style="color:var(--primary-blue)">อุปกรณ์และของแถม</h4>
+                        <div class="chk-row"><label><input type="checkbox" checked> ใบเสร็จ (จริง)</label> <span class="condition-badge cond-new">Grade A</span></div>
+                        <div class="chk-row"><label><input type="checkbox" checked> ถุงผ้า</label> <span class="condition-badge cond-new">Grade A</span></div>
+                        <div class="chk-row"><label><input type="checkbox" checked> กล่อง</label> <span class="condition-badge cond-new">Grade A</span></div>
+                        <div class="chk-row"><label><input type="checkbox"> การ์ด</label> <span class="condition-badge cond-kept">Grade B</span></div>
+                        <div class="chk-row"><span>ระบุอื่นๆ:</span> <input type="text" value="Saudi Arabia" class="form-control" style="width:120px;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top:15px; background:var(--accent-elevated); padding:15px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div>คะแนนประเมินรวม: <strong id="score_${itemCount}">100</strong> คะแนน</div>
+                    <div>
+                        Condition สรุป:
+                        <select id="cond_${itemCount}" class="form-control" style="width:160px; display:inline-block; font-weight:bold;">
+                            <option value="NEW" selected>NEW (95-100)</option>
+                            <option value="KEPT UNUSED">KEPT UNUSED (85-95)</option>
+                            <option value="LIKE NEW">LIKE NEW (75-85)</option>
+                            <option value="USED">USED (&lt;75)</option>
+                        </select>
+                    </div>
+                    <div>ราคาประเมินรับซื้อ: <input type="number" value="45000" id="price_${itemCount}" class="form-control" style="width:120px; display:inline-block;" onchange="updateMainApptPrice()"> บาท</div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:20px; text-align:right;">
+            <button class="btn" style="background:#10b981;" onclick="submitFinalChecklist()">บันทึกผลการตรวจสอบทั้งหมดลง Sheets</button>
+        </div>
+        <p style="font-size:12px; color:gray; text-align:right; margin-top:5px;">ลงชื่อผู้ตรวจ: TU. | วันที่ตรวจ: 18/5/26</p>
+    </div>
+
+    <script>
+    function calculateScore(index) {
+        // คำนวณคะแนนรวมและ Auto-select เกรดตามช่วงคะแนนจริงในรูปใบเสร็จต้นฉบับ
+        const inputs = document.querySelectorAll(`#productItem_${index} input[type='number']`);
+        let sum = 0;
+        inputs.forEach(i => sum += Number(i.value));
+        document.getElementById(`score_${index}`).innerText = sum;
+        
+        const condSelect = document.getElementById(`cond_${index}`);
+        if(sum >= 95) condSelect.value = "NEW";
+        else if(sum >= 85) condSelect.value = "KEPT UNUSED";
+        else if(sum >= 75) condSelect.value = "LIKE NEW";
+        else condSelect.value = "USED";
+        
+        updateMainApptPrice();
+    }
+
+    function updateMainApptPrice() {
+        if(!currentApptId) return;
+        const appt = appointments.find(a => a.id === currentApptId);
+        const container = document.getElementById('productItemsContainer');
+        let totalItems = container.children.length;
+        let totalAmount = 0;
+        
+        for(let i=1; i<=totalItems; i++) {
+            const priceInput = document.getElementById(`price_${i}`);
+            if(priceInput) totalAmount += Number(priceInput.value);
+        }
+        
+        appt.totalItems = totalItems;
+        appt.totalAmount = totalAmount;
+        loadAppointments();
+    }
+
+    function submitFinalChecklist() {
+        alert("🎉 บันทึกข้อมูลสภาพสินค้าชิ้นงานเชื่อมโยงไปยัง Google Sheets เรียบร้อยแล้ว!");
+        document.getElementById('checklistWindow').style.display = "none";
+    }
+    </script>
+</body>
+</html>
