@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Farevefarm — ระบบรับซื้อสินค้า</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:       #1F3151;
+  --blue-dark:  #162440;
+  --blue-mid:   #2a4370;
+  --blue-light: #e8edf5;
+  --blue-xlight:#f0f4fa;
+  --black:      #11151D;
+  --elevated:   #B4C4D3;
+  --foggy:      #EAE7DF;
+  --white:      #FFFFFF;
+  --success:    #2e7d52;
+  --warning:    #b45309;
+  --danger:     #b91c1c;
+  --success-bg: #e8f5ee;
+  --warning-bg: #fef3cd;
+  --danger-bg:  #fde8e8;
+  --radius:     10px;
+  --shadow:     0 2px 12px rgba(31,49,81,.13);
+  --shadow-lg:  0 6px 32px rgba(31,49,81,.18);
+  --transition: .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:16px; }
+body {
+  font-family:'Anuphan','Work Sans',sans-serif;
+  background:var(--blue-xlight);
+  color:var(--black);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+/* ─── Typography ─────────────────────────────── */
+h1,h2,h3,h4 { font-family:'Work Sans','Anuphan',sans-serif; font-weight:600; color:var(--blue); }
+.en { font-family:'Work Sans',sans-serif; }
+/* ─── Layout ─────────────────────────────────── */
+#app { display:flex; flex-direction:column; min-height:100vh; }
+.top-bar {
+  background:var(--blue);
+  color:var(--white);
+  padding:0 20px;
+  height:58px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.top-bar .logo { font-family:'Work Sans',sans-serif; font-size:1.1rem; font-weight:700; letter-spacing:.04em; color:var(--white); text-decoration:none; }
+.top-bar .logo span { opacity:.6; font-weight:300; font-size:.85rem; margin-left:6px; }
+.top-nav { display:flex; gap:4px; }
+.top-nav button {
+  background:transparent; border:none; color:rgba(255,255,255,.7);
+  font-family:'Work Sans',sans-serif; font-size:.82rem; font-weight:500;
+  padding:6px 12px; border-radius:6px; cursor:pointer; transition:var(--transition);
+}
+.top-nav button:hover, .top-nav button.active { background:rgba(255,255,255,.15); color:var(--white); }
+.main { flex:1; padding:20px; max-width:1100px; margin:0 auto; width:100%; padding-bottom:80px; }
+.bottom-nav {
+  display:none;
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--blue);
+  padding:8px 0 max(8px,env(safe-area-inset-bottom));
+  z-index:100;
+  box-shadow:0 -2px 12px rgba(0,0,0,.2);
+}
+.bottom-nav .nav-items { display:flex; justify-content:space-around; }
+.bottom-nav button {
+  background:transparent; border:none;
+  color:rgba(255,255,255,.6); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-family:'Anuphan',sans-serif; font-size:.68rem; padding:4px 12px;
+  transition:var(--transition); border-radius:8px;
+}
+.bottom-nav button svg { width:22px; height:22px; }
+.bottom-nav button.active, .bottom-nav button:hover { color:var(--white); }
+/* ─── Cards ──────────────────────────────────── */
+.card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px; margin-bottom:16px; }
+.card-title { font-size:.75rem; font-family:'Work Sans',sans-serif; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--elevated); margin-bottom:10px; }
+/* ─── Buttons ────────────────────────────────── */
+.btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:9px 18px; border-radius:8px; border:none; cursor:pointer;
+  font-family:'Anuphan','Work Sans',sans-serif; font-size:.9rem; font-weight:500;
+  transition:var(--transition); white-space:nowrap; text-decoration:none;
+}
+.btn-primary { background:var(--blue); color:var(--white); }
+.btn-primary:hover { background:var(--blue-mid); }
+.btn-secondary { background:var(--blue-light); color:var(--blue); }
+.btn-secondary:hover { background:var(--elevated); }
+.btn-danger { background:var(--danger-bg); color:var(--danger); }
+.btn-danger:hover { background:#fbd0d0; }
+.btn-success { background:var(--success-bg); color:var(--success); }
+.btn-success:hover { background:#d0edd9; }
+.btn-ghost { background:transparent; color:var(--blue); border:1.5px solid var(--elevated); }
+.btn-ghost:hover { background:var(--blue-light); }
+.btn-sm { padding:5px 12px; font-size:.8rem; border-radius:6px; }
+.btn-xs { padding:3px 8px; font-size:.75rem; border-radius:5px; }
+.btn-block { width:100%; justify-content:center; }
+/* ─── Forms ──────────────────────────────────── */
+.form-group { margin-bottom:14px; }
+.form-group label { display:block; font-size:.82rem; font-weight:500; color:var(--blue); margin-bottom:5px; }
+.form-control {
+  width:100%; padding:9px 12px; border:1.5px solid var(--elevated);
+  border-radius:8px; font-family:'Anuphan','Work Sans',sans-serif; font-size:.92rem;
+  color:var(--black); background:var(--white); transition:var(--transition); outline:none;
+}
+.form-control:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(31,49,81,.1); }
+.form-control::placeholder { color:#aaa; }
+select.form-control { cursor:pointer; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+/* ─── Badges / Status ────────────────────────── */
+.badge {
+  display:inline-block; padding:2px 9px; border-radius:20px;
+  font-size:.73rem; font-weight:600; font-family:'Work Sans',sans-serif;
+}
+.badge-blue    { background:var(--blue-light); color:var(--blue); }
+.badge-success { background:var(--success-bg); color:var(--success); }
+.badge-warning { background:var(--warning-bg); color:var(--warning); }
+.badge-danger  { background:var(--danger-bg);  color:var(--danger); }
+.badge-gray    { background:var(--foggy); color:#666; }
+/* ─── Progress Bar ───────────────────────────── */
+.progress-wrap { background:var(--blue-light); border-radius:99px; height:12px; overflow:hidden; }
+.progress-bar  { background:var(--blue); height:100%; border-radius:99px; transition:.5s ease; }
+.progress-bar.warn { background:var(--warning); }
+.progress-bar.over { background:var(--danger); }
+/* ─── Table ──────────────────────────────────── */
+.table-wrap { overflow-x:auto; border-radius:var(--radius); }
+table { width:100%; border-collapse:collapse; font-size:.88rem; }
+thead tr { background:var(--blue); color:var(--white); }
+thead th { padding:10px 13px; text-align:left; font-family:'Work Sans',sans-serif; font-weight:500; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
+tbody tr { border-bottom:1px solid var(--blue-light); transition:var(--transition); }
+tbody tr:hover { background:var(--blue-xlight); }
+tbody td { padding:10px 13px; vertical-align:middle; }
+tbody tr:last-child { border-bottom:none; }
+/* ─── Modal ──────────────────────────────────── */
+.modal-overlay {
+  display:none; position:fixed; inset:0; background:rgba(17,21,29,.55);
+  z-index:500; align-items:center; justify-content:center; padding:16px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--white); border-radius:14px; box-shadow:var(--shadow-lg);
+  width:100%; max-width:520px; max-height:90vh; overflow-y:auto; padding:28px;
+}
+.modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.modal-header h3 { color:var(--blue); font-size:1.1rem; }
+.modal-close { background:none; border:none; cursor:pointer; color:var(--elevated); font-size:1.4rem; line-height:1; padding:2px; }
+.modal-close:hover { color:var(--blue); }
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; padding-top:16px; border-top:1px solid var(--blue-light); }
+/* ─── Score & Condition ──────────────────────── */
+.score-display {
+  text-align:center; background:var(--blue); color:var(--white);
+  border-radius:12px; padding:18px; margin:14px 0;
+}
+.score-display .num { font-size:3rem; font-family:'Work Sans',sans-serif; font-weight:700; line-height:1; }
+.score-display .label { font-size:.8rem; opacity:.7; margin-top:4px; }
+.condition-select-wrap { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.condition-btn {
+  border:2px solid var(--elevated); background:var(--white); border-radius:9px;
+  padding:10px 8px; cursor:pointer; transition:var(--transition); text-align:center;
+  font-family:'Work Sans',sans-serif; font-weight:600; font-size:.82rem;
+}
+.condition-btn:hover { border-color:var(--blue); }
+.condition-btn.selected-NEW    { border-color:var(--success); background:var(--success-bg); color:var(--success); }
+.condition-btn.selected-KEPT   { border-color:#0369a1; background:#e0f2fe; color:#0369a1; }
+.condition-btn.selected-LIKENEW{ border-color:#7c3aed; background:#f5f3ff; color:#7c3aed; }
+.condition-btn.selected-USED   { border-color:var(--warning); background:var(--warning-bg); color:var(--warning); }
+/* ─── Checklist Rows ─────────────────────────── */
+.check-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:8px 12px; border-radius:8px; background:var(--blue-xlight); margin-bottom:6px;
+}
+.check-row .check-name { font-size:.88rem; flex:1; }
+.check-row .check-grade { font-size:.73rem; font-weight:700; color:var(--elevated); margin:0 10px; }
+.check-toggle { display:flex; gap:6px; }
+.check-toggle label {
+  display:flex; align-items:center; gap:4px;
+  font-size:.8rem; cursor:pointer; padding:4px 10px;
+  border-radius:6px; border:1.5px solid var(--elevated);
+  transition:var(--transition); user-select:none;
+}
+.check-toggle input { display:none; }
+.check-toggle label.yes:has(input:checked) { border-color:var(--success); background:var(--success-bg); color:var(--success); }
+.check-toggle label.no:has(input:checked)  { border-color:var(--danger); background:var(--danger-bg); color:var(--danger); }
+/* ─── Condition Rows ─────────────────────────── */
+.cond-row { padding:10px 12px; border-radius:8px; background:var(--blue-xlight); margin-bottom:6px; }
+.cond-row .cond-name { font-size:.86rem; font-weight:500; margin-bottom:6px; }
+.cond-options { display:flex; flex-wrap:wrap; gap:6px; }
+.cond-opt { display:none; }
+.cond-opt + label {
+  padding:5px 11px; border-radius:6px; border:1.5px solid var(--elevated);
+  font-size:.8rem; cursor:pointer; transition:var(--transition);
+  font-family:'Anuphan','Work Sans',sans-serif; display:inline-block;
+}
+.cond-opt:checked + label { border-color:var(--blue); background:var(--blue); color:var(--white); }
+/* ─── Page Transitions ───────────────────────── */
+.page { display:none; animation:fadeIn .2s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+/* ─── Section Header ─────────────────────────── */
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+.page-header h2 { font-size:1.3rem; }
+.back-btn { display:flex; align-items:center; gap:5px; background:none; border:none; cursor:pointer; color:var(--blue); font-size:.88rem; font-weight:500; padding:4px 0; }
+.back-btn:hover { opacity:.7; }
+/* ─── Date Nav ───────────────────────────────── */
+.date-nav { display:flex; align-items:center; gap:8px; }
+.date-nav button { background:var(--blue-light); border:none; color:var(--blue); border-radius:7px; padding:7px 12px; cursor:pointer; font-size:1rem; transition:var(--transition); }
+.date-nav button:hover { background:var(--elevated); }
+.date-nav input[type=date] { font-family:'Work Sans','Anuphan',sans-serif; }
+/* ─── Item Card ──────────────────────────────── */
+.item-card {
+  background:var(--white); border-radius:10px; box-shadow:var(--shadow);
+  padding:14px 16px; margin-bottom:12px; border-left:4px solid var(--elevated);
+  transition:var(--transition);
+}
+.item-card.inspected { border-left-color:var(--success); }
+.item-card.confirmed { border-left-color:var(--blue); }
+.item-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+.item-card-info h4 { font-size:.95rem; color:var(--blue); }
+.item-card-info p  { font-size:.8rem; color:#666; margin-top:2px; }
+.item-card-actions { display:flex; gap:6px; flex-wrap:wrap; }
+.item-card-footer { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; padding-top:8px; border-top:1px solid var(--blue-light); align-items:center; }
+/* ─── Dashboard Stats ────────────────────────── */
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:20px; }
+.stat-box { background:var(--white); border-radius:10px; padding:16px; box-shadow:var(--shadow); border-top:3px solid var(--blue); }
+.stat-box .val { font-size:1.6rem; font-weight:700; font-family:'Work Sans',sans-serif; color:var(--blue); }
+.stat-box .lbl { font-size:.75rem; color:#888; margin-top:2px; }
+/* ─── Alert ──────────────────────────────────── */
+.alert { padding:11px 16px; border-radius:8px; font-size:.88rem; margin-bottom:14px; border-left:3px solid; }
+.alert-info    { background:#e8edf5; border-color:var(--blue); color:var(--blue-dark); }
+.alert-warning { background:var(--warning-bg); border-color:var(--warning); color:var(--warning); }
+.alert-danger  { background:var(--danger-bg);  border-color:var(--danger);  color:var(--danger); }
+.alert-success { background:var(--success-bg); border-color:var(--success); color:var(--success); }
+/* ─── Toast ──────────────────────────────────── */
+#toast {
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--black); color:var(--white);
+  padding:10px 22px; border-radius:30px; font-size:.85rem;
+  opacity:0; transition:.3s ease; z-index:9999; white-space:nowrap; pointer-events:none;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+/* ─── Settings ───────────────────────────────── */
+.settings-section { background:var(--white); border-radius:10px; padding:20px; margin-bottom:16px; box-shadow:var(--shadow); }
+.settings-section h3 { font-size:.95rem; color:var(--blue); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--blue-light); }
+/* ─── Sync Indicator ─────────────────────────── */
+.sync-dot { width:8px; height:8px; border-radius:50%; background:var(--elevated); display:inline-block; margin-right:4px; }
+.sync-dot.ok  { background:var(--success); }
+.sync-dot.err { background:var(--danger); }
+/* ─── PRINT ──────────────────────────────────── */
+@media print {
+  body { background:white; font-size:11pt; }
+  .no-print { display:none !important; }
+  .top-bar,.bottom-nav,#toast { display:none !important; }
+  .main { padding:0; max-width:100%; }
+  #print-view { display:block !important; }
+  .page { display:none !important; }
+  @page { size:A4; margin:14mm 12mm; }
+}
+#print-view { display:none; }
+#print-view.printing { display:block; }
+.pf { font-family:'Anuphan','Work Sans',sans-serif; font-size:9.5pt; color:#000; max-width:190mm; margin:0 auto; }
+.pf-header { text-align:center; margin-bottom:8pt; }
+.pf-title { font-size:12pt; font-weight:700; }
+.pf-sub { font-size:9pt; color:#444; }
+.pf-body { display:grid; grid-template-columns:1fr 1fr; gap:10pt; }
+.pf-section { margin-bottom:8pt; }
+.pf-section-title { font-weight:700; font-size:9pt; border-bottom:1pt solid #000; padding-bottom:2pt; margin-bottom:4pt; }
+.pf-table { width:100%; border-collapse:collapse; font-size:8.5pt; }
+.pf-table th { background:#1F3151; color:white; padding:3pt 5pt; text-align:left; }
+.pf-table td { padding:3pt 5pt; border-bottom:.5pt solid #ccc; }
+.pf-table tr:last-child td { border-bottom:none; }
+.pf-check { display:inline-block; width:10pt; height:10pt; border:1pt solid #666; border-radius:2pt; margin-right:4pt; text-align:center; line-height:10pt; font-size:8pt; }
+.pf-score-box { border:1.5pt solid #1F3151; border-radius:5pt; padding:8pt; text-align:center; }
+.pf-score-num { font-size:28pt; font-weight:700; color:#1F3151; }
+.pf-condition-row { display:flex; gap:8pt; margin-top:6pt; flex-wrap:wrap; }
+.pf-cond-item { display:flex; align-items:center; gap:4pt; font-size:8.5pt; }
+.pf-footer { margin-top:10pt; display:flex; justify-content:space-between; font-size:8.5pt; border-top:1pt solid #ccc; padding-top:6pt; }
+/* ─── Responsive ─────────────────────────────── */
+@media(max-width:768px){
+  .top-nav { display:none; }
+  .bottom-nav { display:block; }
+  .form-row, .form-row-3 { grid-template-columns:1fr; }
+  .main { padding:14px; padding-bottom:90px; }
+  table { font-size:.8rem; }
+  thead th { padding:8px 9px; }
+  tbody td { padding:8px 9px; }
+  .stats-grid { grid-template-columns:1fr 1fr; }
+  .condition-select-wrap { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:480px){
+  .page-header { flex-direction:column; align-items:flex-start; }
+  .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+  .modal { padding:20px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- ─── TOP BAR ─── -->
+<header class="top-bar no-print">
+  <a class="logo" href="#" onclick="showPage('dashboard');return false;">
+    FAREVEFARM <span>BUYING SYSTEM</span>
+  </a>
+  <nav class="top-nav">
+    <button onclick="showPage('dashboard')" data-page="dashboard">Dashboard</button>
+    <button onclick="showPage('schedule')" data-page="schedule">ตารางนัด</button>
+    <button onclick="showPage('new-appt')" data-page="new-appt">+ นัดหมายใหม่</button>
+    <button onclick="showPage('settings')" data-page="settings">Settings</button>
+  </nav>
+</header>
+
+<!-- ─── MAIN CONTENT ─── -->
+<main class="main" id="main-content">
+
+<!-- ════════════════════════════════════════════
+     PAGE: DASHBOARD
+════════════════════════════════════════════ -->
+<section class="page active" id="page-dashboard">
+  <div class="page-header">
+    <h2>Dashboard</h2>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="sync-indicator"><span class="sync-dot" id="sync-dot"></span><span id="sync-text" style="font-size:.78rem;color:#888;">ไม่ได้เชื่อม Sheets</span></span>
+      <button class="btn btn-primary btn-sm" onclick="showPage('new-appt')">+ นัดหมายใหม่</button>
+    </div>
+  </div>
+
+  <!-- Daily Limit -->
+  <div class="card" style="border-left:4px solid var(--blue);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div class="card-title" style="margin-bottom:2px;">วงเงินรับซื้อวันนี้</div>
+        <div style="font-size:.85rem;color:#666;" id="dash-date-label"></div>
+      </div>
+      <div style="text-align:right;">
+        <span id="dash-used-amount" style="font-size:1.4rem;font-weight:700;font-family:'Work Sans',sans-serif;color:var(--blue);">฿0</span>
+        <span style="color:#aaa;font-size:.85rem;"> / </span>
+        <span id="dash-limit-amount" style="font-size:.95rem;font-weight:500;color:#888;">฿2,000,000</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="dash-progress" style="width:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:6px;">
+      <span style="font-size:.75rem;color:#888;">ยืนยันแล้ว <span id="dash-confirmed-count">0</span> รายการ</span>
+      <span style="font-size:.75rem;color:#888;">คงเหลือ <span id="dash-remaining">฿2,000,000</span></span>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="val" id="stat-appt-today">0</div>
+      <div class="lbl">นัดวันนี้</div>
+    </div>
+    <div class="stat-box">
+      <div class="val" id="stat-items-today">0</div>
+      <div class="lbl">สินค้ารอตรวจ</div>
+    </div>
+    <div class="stat-box" style="border-top-color:var(--success);">
+      <div class="val" id="stat-inspected" style="color:var(--success);">0</div>
+      <div class="lbl">ตรวจแล้ว</div>
+    </div>
+    <div class="stat-box" style="border-top-color:var(--warning);">
+      <div class="val" id="stat-transfer-pending" style="color:var(--warning);">0</div>
+      <div class="lbl">รอโอนเงิน</div>
+    </div>
+  </div>
+
+  <!-- Today's Appointments Preview -->
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">นัดหมายวันนี้</div>
+      <button class="btn btn-secondary btn-sm" onclick="showPage('schedule')">ดูทั้งหมด</button>
+    </div>
+    <div id="dash-appt-list">
+      <div style="text-align:center;padding:24px;color:#aaa;font-size:.88rem;">ยังไม่มีนัดหมายวันนี้</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     PAGE: NEW APPOINTMENT
+════════════════════════════════════════════ -->
+<section class="page" id="page-new-appt">
+  <div class="page-header">
+    <div>
+      <button class="back-btn" onclick="showPage('dashboard')">← กลับ</button>
+      <h2 id="new-appt-title">นัดหมายใหม่</h2>
+    </div>
+  </div>
+  <div class="card" style="max-width:560px;">
+    <input type="hidden" id="edit-appt-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>วันที่นัด *</label>
+        <input type="date" class="form-control" id="appt-date">
+      </div>
+      <div class="form-group">
+        <label>เวลานัด *</label>
+        <select class="form-control" id="appt-time"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>ชื่อลูกค้า *</label>
+      <input type="text" class="form-control" id="appt-name" placeholder="ชื่อ-นามสกุล">
+    </div>
+    <div class="form-group">
+      <label>เบอร์โทรติดต่อ *</label>
+      <input type="tel" class="form-control" id="appt-phone" placeholder="08X-XXX-XXXX">
+    </div>
+    <div class="form-group">
+      <label>หมายเหตุ</label>
+      <input type="text" class="form-control" id="appt-notes" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)">
+    </div>
+    <div id="appt-form-error" class="alert alert-danger" style="display:none;"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-primary" onclick="saveAppointment()">บันทึกนัดหมาย</button>
+      <button class="btn btn-ghost" onclick="showPage('schedule')">ยกเลิก</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     PAGE: SCHEDULE
+════════════════════════════════════════════ -->
+<section class="page" id="page-schedule">
+  <div class="page-header">
+    <h2>ตารางนัดหมาย</h2>
+    <button class="btn btn-primary btn-sm" onclick="showPage('new-appt')">+ นัดหมายใหม่</button>
+  </div>
+
+  <!-- Date Navigation -->
+  <div class="card" style="padding:14px 20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div class="date-nav">
+        <button onclick="changeScheduleDate(-1)">&#8592;</button>
+        <input type="date" class="form-control" id="schedule-date" style="width:auto;" onchange="loadSchedule()">
+        <button onclick="changeScheduleDate(1)">&#8594;</button>
+        <button class="btn btn-secondary btn-sm" onclick="goToday()">วันนี้</button>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.78rem;color:#888;">วงเงินที่ใช้ไป (ยืนยันแล้ว)</div>
+        <div style="font-size:1.1rem;font-weight:700;color:var(--blue);">
+          <span id="sched-used">฿0</span> <span style="font-weight:400;font-size:.85rem;color:#aaa;">/ <span id="sched-limit">฿2,000,000</span></span>
+        </div>
+        <div class="progress-wrap" style="height:7px;margin-top:5px;min-width:200px;">
+          <div class="progress-bar" id="sched-progress" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Table -->
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>เวลา</th>
+            <th>ชื่อลูกค้า</th>
+            <th>โทรศัพท์</th>
+            <th>จำนวน</th>
+            <th>ยอดโอน</th>
+            <th>รับสินค้า</th>
+            <th>โอนเงิน</th>
+            <th>สถานะ</th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="schedule-tbody">
+          <tr><td colspan="9" style="text-align:center;padding:28px;color:#aaa;">ไม่มีนัดหมาย</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     PAGE: APPOINTMENT ITEMS
+════════════════════════════════════════════ -->
+<section class="page" id="page-appt-items">
+  <div class="page-header">
+    <div>
+      <button class="back-btn" onclick="showPage('schedule')">← ตารางนัด</button>
+      <h2 id="appt-items-title">สินค้าของลูกค้า</h2>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="openAddItemModal()">+ เพิ่มสินค้า</button>
+    </div>
+  </div>
+
+  <!-- Customer Info Banner -->
+  <div class="card" style="background:var(--blue);color:white;padding:14px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+      <div>
+        <div style="font-size:1.1rem;font-weight:600;" id="appt-customer-name">—</div>
+        <div style="font-size:.85rem;opacity:.7;" id="appt-customer-phone">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.78rem;opacity:.7;">วันที่ / เวลา</div>
+        <div style="font-size:.95rem;font-weight:500;" id="appt-datetime">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Items Summary -->
+  <div class="card" style="padding:14px 20px;">
+    <div style="display:flex;gap:20px;flex-wrap:wrap;">
+      <div><span style="font-size:.78rem;color:#888;">จำนวนสินค้า</span><br><strong id="summary-item-count">0 ชิ้น</strong></div>
+      <div><span style="font-size:.78rem;color:#888;">ยอดรับซื้อรวม</span><br><strong id="summary-total" style="color:var(--blue);">฿0</strong></div>
+      <div><span style="font-size:.78rem;color:#888;">ตรวจแล้ว</span><br><strong id="summary-inspected">0 ชิ้น</strong></div>
+      <div><span style="font-size:.78rem;color:#888;">สถานะโอนเงิน</span><br><span id="summary-transfer">—</span></div>
+    </div>
+  </div>
+
+  <!-- Items List -->
+  <div id="items-list-container">
+    <div style="text-align:center;padding:40px;color:#aaa;">ยังไม่มีสินค้า กด "+ เพิ่มสินค้า" เพื่อเริ่มต้น</div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     PAGE: INSPECTION FORM
+════════════════════════════════════════════ -->
+<section class="page" id="page-inspect">
+  <div class="page-header">
+    <div>
+      <button class="back-btn" id="inspect-back-btn">← กลับ</button>
+      <h2>ตรวจสภาพสินค้า</h2>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="printInspectionForm()">🖨 Print PDF</button>
+      <button class="btn btn-primary btn-sm" onclick="saveInspection()">บันทึก</button>
+    </div>
+  </div>
+
+  <!-- Product Info -->
+  <div class="card" style="background:var(--blue);color:white;padding:14px 20px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:.72rem;opacity:.6;text-transform:uppercase;letter-spacing:.06em;" id="inspect-type-label">TYPE</div>
+        <div style="font-size:1rem;font-weight:600;" id="inspect-product-name">—</div>
+        <div style="font-size:.82rem;opacity:.7;" id="inspect-product-size">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:.78rem;opacity:.6;">ลูกค้า</div>
+        <div id="inspect-customer-name" style="font-weight:500;">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="inspect-grid">
+    <!-- Left: Accessories -->
+    <div>
+      <div class="card">
+        <div class="card-title">อุปกรณ์ที่มากับสินค้า</div>
+        <div id="accessories-list"></div>
+      </div>
+      <!-- Customer info -->
+      <div class="card">
+        <div class="card-title">ข้อมูลจากลูกค้า</div>
+        <div style="display:flex;gap:8px;">
+          <label style="flex:1;display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:8px;border:1.5px solid var(--elevated);cursor:pointer;transition:var(--transition);" id="lbl-unused">
+            <input type="radio" name="customer-used" value="unused" id="radio-unused" onchange="styleCustomerInfo()">
+            <span style="font-size:.88rem;">ไม่เคยใช้งาน</span>
+          </label>
+          <label style="flex:1;display:flex;align-items:center;gap:6px;padding:9px 12px;border-radius:8px;border:1.5px solid var(--elevated);cursor:pointer;transition:var(--transition);" id="lbl-used">
+            <input type="radio" name="customer-used" value="used" id="radio-used" onchange="styleCustomerInfo()">
+            <span style="font-size:.88rem;">ผ่านการใช้งาน</span>
+          </label>
+        </div>
+      </div>
+      <!-- Inspector -->
+      <div class="card">
+        <div class="card-title">ผู้ตรวจ / วันที่ตรวจ</div>
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="text" class="form-control" id="inspector-name" placeholder="ชื่อผู้ตรวจ">
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <input type="date" class="form-control" id="inspect-date">
+          </div>
+        </div>
+      </div>
+      <!-- Notes -->
+      <div class="card">
+        <div class="card-title">หมายเหตุ / อื่นๆ</div>
+        <textarea class="form-control" id="inspect-notes" rows="3" placeholder="บันทึกเพิ่มเติม..."></textarea>
+      </div>
+    </div>
+
+    <!-- Right: Condition Scoring -->
+    <div>
+      <div class="card">
+        <div class="card-title">ตรวจสภาพสินค้า</div>
+        <div id="condition-list"></div>
+      </div>
+
+      <!-- Score Display -->
+      <div class="score-display" id="score-display">
+        <div class="num" id="total-score">0</div>
+        <div class="label">คะแนนรวม / 100</div>
+      </div>
+
+      <!-- Condition Result -->
+      <div class="card">
+        <div class="card-title">Condition</div>
+        <div style="font-size:.78rem;color:#888;margin-bottom:8px;">คะแนนประเมินอัตโนมัติ — สามารถแก้ไขได้</div>
+        <div class="condition-select-wrap" id="condition-buttons">
+          <button class="condition-btn" data-c="NEW"     onclick="selectCondition('NEW')">NEW<br><span style="font-weight:400;font-size:.72rem;opacity:.7;">95–100 คะแนน</span></button>
+          <button class="condition-btn" data-c="KEPT"    onclick="selectCondition('KEPT')">KEPT UNUSED<br><span style="font-weight:400;font-size:.72rem;opacity:.7;">85–95 คะแนน</span></button>
+          <button class="condition-btn" data-c="LIKENEW" onclick="selectCondition('LIKENEW')">LIKE NEW<br><span style="font-weight:400;font-size:.72rem;opacity:.7;">75–85 คะแนน</span></button>
+          <button class="condition-btn" data-c="USED"    onclick="selectCondition('USED')">USED<br><span style="font-weight:400;font-size:.72rem;opacity:.7;">&lt;75 คะแนน</span></button>
+        </div>
+      </div>
+
+      <!-- Agreed Price -->
+      <div class="card">
+        <div class="card-title">ราคารับซื้อที่ตกลง</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="color:#888;font-size:.9rem;">฿</span>
+          <input type="number" class="form-control" id="agreed-price" placeholder="0" min="0" step="100">
+        </div>
+        <div style="font-size:.75rem;color:#888;margin-top:6px;">* นับรวมในวงเงินรายวันหลังยืนยัน</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════
+     PAGE: SETTINGS
+════════════════════════════════════════════ -->
+<section class="page" id="page-settings">
+  <div class="page-header"><h2>Settings</h2></div>
+
+  <div class="settings-section">
+    <h3>🔗 Google Sheets Connection</h3>
+    <div class="form-group">
+      <label>Google Apps Script Web App URL</label>
+      <input type="url" class="form-control" id="gs-url" placeholder="https://script.google.com/macros/s/XXXX/exec">
+      <div style="font-size:.75rem;color:#888;margin-top:5px;">วาง URL หลัง Deploy Web App จาก Google Apps Script</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">บันทึก</button>
+      <button class="btn btn-secondary btn-sm" onclick="testConnection()">ทดสอบการเชื่อมต่อ</button>
+      <span id="conn-status"></span>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>💰 วงเงินรับซื้อสูงสุดต่อวัน</h3>
+    <div class="alert alert-warning">⚠️ สำหรับกรณีฉุกเฉินเท่านั้น — ค่าเริ่มต้น 2,000,000 บาท</div>
+    <div class="form-group">
+      <label>วงเงิน (บาท)</label>
+      <input type="number" class="form-control" id="daily-limit-input" value="2000000" min="0" step="100000">
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="saveDailyLimit()">บันทึกวงเงิน</button>
+  </div>
+
+  <div class="settings-section">
+    <h3>📋 คำแนะนำการเชื่อม Google Sheets</h3>
+    <div style="font-size:.85rem;line-height:1.8;color:#444;">
+      <strong>1.</strong> เปิด <a href="https://sheets.google.com" target="_blank" style="color:var(--blue);">Google Sheets</a> สร้าง Spreadsheet ใหม่<br>
+      <strong>2.</strong> ไปที่เมนู <strong>Extensions → Apps Script</strong><br>
+      <strong>3.</strong> ลบโค้ดเดิมออกทั้งหมด แล้ววาง Code จากไฟล์ <code>farevefarm-apps-script.gs</code><br>
+      <strong>4.</strong> คลิก <strong>Save</strong> แล้วกด <strong>Run → setupSheets</strong> ครั้งแรกเพื่อสร้าง Sheets<br>
+      <strong>5.</strong> กด <strong>Deploy → New Deployment → Web App</strong><br>
+      &nbsp;&nbsp;&nbsp;— Execute as: <strong>Me</strong><br>
+      &nbsp;&nbsp;&nbsp;— Who has access: <strong>Anyone</strong><br>
+      <strong>6.</strong> คัดลอก URL และวางในช่องด้านบน<br>
+      <strong>7.</strong> กด "ทดสอบการเชื่อมต่อ"
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <h3>ℹ️ เวอร์ชัน</h3>
+    <div style="font-size:.82rem;color:#888;">Farevefarm Buying System v1.0 · พัฒนาสำหรับใช้ภายใน</div>
+  </div>
+</section>
+
+</main><!-- end .main -->
+
+<!-- ─── BOTTOM NAV (mobile) ─── -->
+<nav class="bottom-nav no-print">
+  <div class="nav-items">
+    <button onclick="showPage('dashboard')" data-page="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      หน้าหลัก
+    </button>
+    <button onclick="showPage('schedule')" data-page="schedule">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      ตารางนัด
+    </button>
+    <button onclick="showPage('new-appt')" data-page="new-appt" style="background:rgba(255,255,255,.15);border-radius:10px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      นัดหมาย
+    </button>
+    <button onclick="showPage('settings')" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07-1.41 1.41M8.34 15.66l-1.41 1.41M19.07 19.07l-1.41-1.41M8.34 8.34 6.93 6.93"/></svg>
+      ตั้งค่า
+    </button>
+  </div>
+</nav>
+</div><!-- end #app -->
+
+<!-- ═══════════════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════════════ -->
+
+<!-- Add / Edit Item Modal -->
+<div class="modal-overlay" id="modal-item">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-item-title">เพิ่มสินค้า</h3>
+      <button class="modal-close" onclick="closeModal('modal-item')">✕</button>
+    </div>
+    <input type="hidden" id="modal-item-id">
+    <div class="form-group">
+      <label>ประเภทสินค้า *</label>
+      <select class="form-control" id="item-type">
+        <option value="">— เลือกประเภท —</option>
+        <option value="shoes">รองเท้า (Shoes)</option>
+        <option value="bags">กระเป๋า (Bags)</option>
+        <option value="jewelry">Fine Jewelry</option>
+        <option value="acc">ACC อื่นๆ</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>แบรนด์ (Brand) *</label>
+        <input type="text" class="form-control" id="item-brand" placeholder="เช่น Loro Piana">
+      </div>
+      <div class="form-group">
+        <label>ไซส์ (Size)</label>
+        <input type="text" class="form-control" id="item-size" placeholder="เช่น 39.5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>รุ่น / Model *</label>
+      <input type="text" class="form-control" id="item-model" placeholder="เช่น Summer Charm Walk">
+    </div>
+    <div class="form-group">
+      <label>ราคารับซื้อที่ตกลง (บาท)</label>
+      <input type="number" class="form-control" id="item-price" placeholder="0" min="0" step="100">
+      <div style="font-size:.75rem;color:#888;margin-top:4px;">* กรอกตอนตรวจสอบสินค้าได้ด้วย</div>
+    </div>
+    <div id="item-modal-error" class="alert alert-danger" style="display:none;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-item')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveItem()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Appointment Modal -->
+<div class="modal-overlay" id="modal-edit-appt">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>แก้ไขนัดหมาย</h3>
+      <button class="modal-close" onclick="closeModal('modal-edit-appt')">✕</button>
+    </div>
+    <input type="hidden" id="ea-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label>วันที่นัด</label>
+        <input type="date" class="form-control" id="ea-date">
+      </div>
+      <div class="form-group">
+        <label>เวลานัด</label>
+        <select class="form-control" id="ea-time"></select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>ชื่อลูกค้า</label>
+      <input type="text" class="form-control" id="ea-name">
+    </div>
+    <div class="form-group">
+      <label>เบอร์โทร</label>
+      <input type="tel" class="form-control" id="ea-phone">
+    </div>
+    <div class="form-group">
+      <label>หมายเหตุ</label>
+      <input type="text" class="form-control" id="ea-notes">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-appt')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="updateAppointment()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Cancel Modal -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><h3 id="confirm-title">ยืนยัน</h3><button class="modal-close" onclick="closeModal('modal-confirm')">✕</button></div>
+    <p id="confirm-body" style="font-size:.9rem;color:#555;line-height:1.6;"></p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-confirm')">ยกเลิก</button>
+      <button class="btn btn-danger" id="confirm-ok-btn">ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── TOAST ─── -->
+<div id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     PRINT VIEW  (hidden, shown only on print)
+═══════════════════════════════════════════════════ -->
+<div id="print-view">
+  <div class="pf">
+    <div class="pf-header">
+      <div class="pf-title">FAREVEFARM — ใบตรวจสภาพสินค้า</div>
+      <div class="pf-sub">
+        ชื่อสินค้า: <span id="pv-product"></span> &nbsp;|&nbsp; Size: <span id="pv-size"></span> &nbsp;|&nbsp; วันที่: <span id="pv-date"></span>
+      </div>
+    </div>
+    <div class="pf-body" id="pv-body"></div>
+    <div class="pf-footer">
+      <div>ลูกค้า: <span id="pv-customer"></span> &nbsp;|&nbsp; <span id="pv-used-info"></span></div>
+      <div>ผู้ตรวจ: <span id="pv-inspector"></span> &nbsp;&nbsp; วันที่ตรวจ: <span id="pv-inspect-date"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════ -->
+<script>
+// ─────────────────────────────────────────────────────
+//  CONSTANTS & DATA DEFINITIONS
+// ─────────────────────────────────────────────────────
+const TYPE_LABELS = { shoes:'รองเท้า', bags:'กระเป๋า', jewelry:'Fine Jewelry', acc:'ACC อื่นๆ' };
+const CONDITION_LABELS = { NEW:'NEW', KEPT:'KEPT UNUSED', LIKENEW:'LIKE NEW', USED:'USED' };
+
+const ACCESSORIES = {
+  shoes: [
+    {id:'receipt',  name:'ใบเสร็จ',      grade:'A'},
+    {id:'dustbag',  name:'ถุงผ้า',        grade:'A'},
+    {id:'box',      name:'กล่อง',         grade:'A'},
+    {id:'card',     name:'การ์ด',         grade:'B'},
+    {id:'paperbag', name:'ถุงกระดาษ',     grade:'B'},
+    {id:'other',    name:'อื่นๆ (ระบุ)',  grade:null, isText:true}
+  ],
+  bags: [
+    {id:'receipt_orig', name:'ใบเสร็จ Original', grade:'A'},
+    {id:'receipt_copy', name:'ใบเสร็จ Copy',     grade:'A'},
+    {id:'card',         name:'การ์ด',             grade:'A'},
+    {id:'dustbag',      name:'ถุงผ้า',            grade:'A'},
+    {id:'box',          name:'กล่อง',             grade:'A'},
+    {id:'paperbag',     name:'ถุงกระดาษ',         grade:'B'},
+    {id:'ribbon',       name:'ริบบิ้น/ริบบิ้น-ดอก', grade:'B'},
+    {id:'cites',        name:'Cites (ถ้ามี)',      grade:'A'},
+    {id:'cert_check',   name:'ใบตรวจ',            grade:'B'},
+    {id:'other',        name:'อื่นๆ (ระบุ)',       grade:null, isText:true}
+  ],
+  jewelry: [
+    {id:'cert',         name:'Certificate',        grade:'A'},
+    {id:'receipt_orig', name:'ใบเสร็จ Original',   grade:'A'},
+    {id:'receipt_copy', name:'ใบเสร็จ Copy',       grade:'A'},
+    {id:'pouch',        name:'ถุง/กล่อง/ซอง',      grade:'A'},
+    {id:'outer_box',    name:'กล่องนอก',           grade:'A'},
+    {id:'dustbag',      name:'ถุงผ้า',             grade:'A'},
+    {id:'card',         name:'การ์ด',              grade:'B'},
+    {id:'paperbag',     name:'ถุงกระดาษ',          grade:'B'},
+    {id:'other',        name:'อื่นๆ (ระบุ)',        grade:null, isText:true}
+  ],
+  acc: [
+    {id:'receipt',  name:'ใบเสร็จ',      grade:'A'},
+    {id:'dustbag',  name:'ถุงผ้า',        grade:'A'},
+    {id:'box',      name:'กล่อง',         grade:'A'},
+    {id:'card',     name:'การ์ด',         grade:'B'},
+    {id:'paperbag', name:'ถุงกระดาษ',     grade:'B'},
+    {id:'other',    name:'อื่นๆ (ระบุ)',  grade:null, isText:true}
+  ]
+};
+
+const CONDITIONS = {
+  shoes: [
+    {id:'shape',   name:'ทรงรองเท้า',              opts:[{l:'ปกติ',s:20},{l:'ไม่ปกติ',s:10}]},
+    {id:'hardware',name:'อะไหล่ - ออกซีไดซ์/สนิม',opts:[{l:'ไม่มี',s:20},{l:'1-2 จุด',s:10},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'glue',    name:'กาวซึม',                   opts:[{l:'ไม่มี',s:20},{l:'1-2 จุด',s:10},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'smell',   name:'กลิ่น',                    opts:[{l:'ปกติ',s:10},{l:'ไม่ปกติ',s:5}]},
+    {id:'crystal', name:'เพชรหลุด',                 opts:[{l:'ไม่มี',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'scratch', name:'ถลอก/เลพ/ซีด',            opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'sole',    name:'พื้น',                     opts:[{l:'ไม่มีรอย',s:10},{l:'รอยเล็กน้อย',s:5},{l:'รอยเยอะ',s:0}]}
+  ],
+  bags: [
+    {id:'leather', name:'หนัง',                          opts:[{l:'หนังแข็งสวย',s:15},{l:'หนังนิ่มบางๆ',s:10},{l:'หนังนิ่มยวบ',s:5}]},
+    {id:'hardware',name:'อะไหล่',                         opts:[{l:'ไม่มีรอย',s:10},{l:'ขนแมวบางๆ',s:5},{l:'ขนแมวเยอะ',s:0}]},
+    {id:'smell',   name:'กลิ่น',                          opts:[{l:'ปกติ',s:5},{l:'ไม่ปกติ',s:0}]},
+    {id:'corner',  name:'ขอบมุม',                         opts:[{l:'ไม่มีรอย',s:10},{l:'มีรอยบางๆ',s:5},{l:'รอยถลอกลึก',s:0}]},
+    {id:'stain',   name:'รอยปากกา/เครื่องสำอาง/ดูตสี',  opts:[{l:'ไม่มีรอย',s:10},{l:'เล็ก/1-2 จุด',s:5},{l:'ใหญ่/3 จุดขึ้นไป',s:0}]},
+    {id:'scratch', name:'ถลอก/เพ/เล็บ',                  opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'glue',    name:'กาวซึม',                         opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'water',   name:'คราบน้ำ',                        opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'press',   name:'รอยขีดข่วน/ทับ',                opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'oxidize', name:'ออกซิไดซ์',                     opts:[{l:'ไม่มี',s:10},{l:'มี',s:0}]}
+  ],
+  jewelry: [
+    {id:'shape',   name:'ทรง',              opts:[{l:'ปกติ',s:10},{l:'ไม่ปกติ',s:0}]},
+    {id:'hardware',name:'อะไหล่',           opts:[{l:'ไม่มีรอย',s:20},{l:'ขนแมวบางๆ',s:10},{l:'ขนแมวเยอะ',s:5}]},
+    {id:'scratch', name:'ถลอก/ขาด/ซีด',   opts:[{l:'ไม่มีรอย',s:20},{l:'1-2 จุด',s:10},{l:'3 จุดขึ้นไป',s:5}]},
+    {id:'stain',   name:'รอยเปื้อน',       opts:[{l:'ไม่มีรอย',s:20},{l:'1-2 จุด',s:10},{l:'3 จุดขึ้นไป',s:5}]},
+    {id:'glue',    name:'กาวซึม',           opts:[{l:'ไม่มีรอย',s:10},{l:'1-2 จุด',s:5},{l:'3 จุดขึ้นไป',s:0}]},
+    {id:'oxidize', name:'ออกซิไดซ์',       opts:[{l:'ไม่มี',s:20},{l:'มี',s:0}]}
+  ],
+  acc: null  // will use jewelry/acc scoring
+};
+CONDITIONS.acc = CONDITIONS.jewelry; // same scoring
+
+// ─────────────────────────────────────────────────────
+//  APP STATE
+// ─────────────────────────────────────────────────────
+let state = {
+  currentPage: 'dashboard',
+  scheduleDate: todayStr(),
+  currentApptId: null,
+  currentItemId: null,
+  appointments: [],
+  items: [],
+  inspections: [],
+  settings: {
+    gsUrl: '',
+    dailyLimit: 2000000
+  }
+};
+
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+// ─────────────────────────────────────────────────────
+//  LOCAL STORAGE
+// ─────────────────────────────────────────────────────
+function saveLocal() {
+  localStorage.setItem('ff_appts',   JSON.stringify(state.appointments));
+  localStorage.setItem('ff_items',   JSON.stringify(state.items));
+  localStorage.setItem('ff_inspects',JSON.stringify(state.inspections));
+}
+function loadLocal() {
+  state.appointments  = JSON.parse(localStorage.getItem('ff_appts')    || '[]');
+  state.items         = JSON.parse(localStorage.getItem('ff_items')    || '[]');
+  state.inspections   = JSON.parse(localStorage.getItem('ff_inspects') || '[]');
+  const s = localStorage.getItem('ff_settings');
+  if (s) state.settings = { ...state.settings, ...JSON.parse(s) };
+}
+function saveSettingsLocal() {
+  localStorage.setItem('ff_settings', JSON.stringify(state.settings));
+}
+
+// ─────────────────────────────────────────────────────
+//  GOOGLE SHEETS API
+// ─────────────────────────────────────────────────────
+async function gsCall(payload) {
+  if (!state.settings.gsUrl) return null;
+  try {
+    const res = await fetch(state.settings.gsUrl, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return { success: false, error: text }; }
+  } catch(e) {
+    console.warn('GS Error:', e);
+    return null;
+  }
+}
+async function gsGet(params) {
+  if (!state.settings.gsUrl) return null;
+  try {
+    const url = state.settings.gsUrl + '?' + new URLSearchParams(params);
+    const res = await fetch(url);
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return null; }
+  } catch(e) { return null; }
+}
+
+// ─────────────────────────────────────────────────────
+//  PAGE NAVIGATION
+// ─────────────────────────────────────────────────────
+function showPage(pageId, opts={}) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + pageId);
+  if (page) page.classList.add('active');
+  state.currentPage = pageId;
+
+  // Update nav active state
+  document.querySelectorAll('[data-page]').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === pageId);
+  });
+
+  // Page-specific init
+  if (pageId === 'dashboard')    initDashboard();
+  if (pageId === 'schedule')     initSchedule();
+  if (pageId === 'new-appt')     initNewAppt(opts);
+  if (pageId === 'appt-items')   initApptItems(opts.apptId);
+  if (pageId === 'inspect')      initInspect(opts.itemId);
+  if (pageId === 'settings')     initSettings();
+
+  window.scrollTo(0, 0);
+}
+
+// ─────────────────────────────────────────────────────
+//  TIME SLOTS
+// ─────────────────────────────────────────────────────
+function buildTimeOptions(selectEl, selectedVal) {
+  selectEl.innerHTML = '';
+  for (let h = 9; h <= 19; h++) {
+    const t = h.toString().padStart(2,'0') + ':00';
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    if (t === selectedVal) opt.selected = true;
+    selectEl.appendChild(opt);
+  }
+}
+
+// ─────────────────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────────────────
+function initDashboard() {
+  const today = todayStr();
+  const todayAppts = state.appointments.filter(a => a.date === today && a.status !== 'cancelled');
+  const todayItems = state.items.filter(i => {
+    const a = state.appointments.find(a => a.id === i.apptId);
+    return a && a.date === today;
+  });
+
+  // Date label
+  const d = new Date(today + 'T00:00:00');
+  document.getElementById('dash-date-label').textContent =
+    d.toLocaleDateString('th-TH', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+  // Daily limit calc
+  const usedAmount = calcDailyTotal(today);
+  const limit = state.settings.dailyLimit;
+  const pct = Math.min(100, (usedAmount / limit) * 100);
+  document.getElementById('dash-used-amount').textContent = '฿' + usedAmount.toLocaleString();
+  document.getElementById('dash-limit-amount').textContent = '฿' + limit.toLocaleString();
+  document.getElementById('dash-remaining').textContent = '฿' + Math.max(0, limit - usedAmount).toLocaleString();
+  const bar = document.getElementById('dash-progress');
+  bar.style.width = pct + '%';
+  bar.className = 'progress-bar' + (pct >= 100 ? ' over' : pct >= 80 ? ' warn' : '');
+
+  const confirmedItems = todayItems.filter(i => i.confirmed);
+  document.getElementById('dash-confirmed-count').textContent = confirmedItems.length;
+
+  // Stats
+  document.getElementById('stat-appt-today').textContent = todayAppts.length;
+  const pendingInspect = todayItems.filter(i => !i.inspectionStatus || i.inspectionStatus === 'pending');
+  document.getElementById('stat-items-today').textContent = pendingInspect.length;
+  document.getElementById('stat-inspected').textContent = todayItems.filter(i => i.inspectionStatus === 'completed').length;
+  document.getElementById('stat-transfer-pending').textContent = todayItems.filter(i => i.transferStatus !== 'transferred' && i.confirmed).length;
+
+  // Appointments list
+  const cont = document.getElementById('dash-appt-list');
+  if (todayAppts.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:24px;color:#aaa;font-size:.88rem;">ยังไม่มีนัดหมายวันนี้</div>';
+    return;
+  }
+  cont.innerHTML = todayAppts.sort((a,b)=>a.time.localeCompare(b.time)).map(a => {
+    const aItems = state.items.filter(i => i.apptId === a.id);
+    const statusBadge = statusBadgeHTML(a.status);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:var(--blue-xlight);margin-bottom:6px;cursor:pointer;" onclick="showPage('appt-items',{apptId:'${a.id}'})">
+      <div style="background:var(--blue);color:white;border-radius:7px;padding:6px 9px;font-family:'Work Sans',sans-serif;font-size:.82rem;font-weight:600;min-width:52px;text-align:center;">${a.time}</div>
+      <div style="flex:1;">
+        <div style="font-weight:500;font-size:.92rem;">${a.customerName}</div>
+        <div style="font-size:.77rem;color:#888;">${a.phone} · ${aItems.length} ชิ้น</div>
+      </div>
+      ${statusBadge}
+    </div>`;
+  }).join('');
+}
+
+function calcDailyTotal(dateStr) {
+  return state.items
+    .filter(i => {
+      if (!i.confirmed) return false;
+      const a = state.appointments.find(a => a.id === i.apptId);
+      return a && a.date === dateStr && a.status !== 'cancelled';
+    })
+    .reduce((sum, i) => sum + (parseFloat(i.agreedPrice) || 0), 0);
+}
+
+// ─────────────────────────────────────────────────────
+//  SCHEDULE
+// ─────────────────────────────────────────────────────
+function initSchedule() {
+  document.getElementById('schedule-date').value = state.scheduleDate;
+  loadSchedule();
+}
+function loadSchedule() {
+  const date = document.getElementById('schedule-date').value;
+  state.scheduleDate = date;
+  const appts = state.appointments.filter(a => a.date === date).sort((a,b)=>a.time.localeCompare(b.time));
+
+  const usedAmount = calcDailyTotal(date);
+  const limit = state.settings.dailyLimit;
+  const pct = Math.min(100, (usedAmount / limit) * 100);
+  document.getElementById('sched-used').textContent = '฿' + usedAmount.toLocaleString();
+  document.getElementById('sched-limit').textContent = '฿' + limit.toLocaleString();
+  const sp = document.getElementById('sched-progress');
+  sp.style.width = pct + '%';
+  sp.className = 'progress-bar' + (pct >= 100 ? ' over' : pct >= 80 ? ' warn' : '');
+
+  const tbody = document.getElementById('schedule-tbody');
+  if (appts.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:28px;color:#aaa;">ไม่มีนัดหมายในวันนี้</td></tr>';
+    return;
+  }
+  tbody.innerHTML = appts.map(a => {
+    const aItems = state.items.filter(i => i.apptId === a.id);
+    const confirmedItems = aItems.filter(i => i.confirmed);
+    const total = confirmedItems.reduce((s,i) => s + (parseFloat(i.agreedPrice)||0), 0);
+    const inspected = aItems.filter(i => i.inspectionStatus === 'completed').length;
+    const transferred = aItems.filter(i => i.transferStatus === 'transferred').length;
+    const isCancelled = a.status === 'cancelled';
+    return `<tr style="${isCancelled ? 'opacity:.45;' : ''}">
+      <td><strong class="en">${a.time}</strong></td>
+      <td>
+        <div style="font-weight:500;">${a.customerName}</div>
+        ${a.notes ? `<div style="font-size:.74rem;color:#888;">${a.notes}</div>` : ''}
+      </td>
+      <td class="en">${a.phone}</td>
+      <td style="text-align:center;">
+        <span style="font-weight:600;">${aItems.length}</span>
+        ${inspected > 0 ? `<span style="font-size:.72rem;color:var(--success);"> (${inspected}✓)</span>` : ''}
+      </td>
+      <td style="text-align:right;font-family:'Work Sans',sans-serif;">฿${total.toLocaleString()}</td>
+      <td style="text-align:center;">${inspected === aItems.length && aItems.length > 0 ? '<span class="badge badge-success">ครบ</span>' : `<span class="badge badge-gray">${inspected}/${aItems.length}</span>`}</td>
+      <td style="text-align:center;">${transferred > 0 ? '<span class="badge badge-success">โอนแล้ว</span>' : '<span class="badge badge-warning">รอโอน</span>'}</td>
+      <td>${statusBadgeHTML(a.status)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          ${!isCancelled ? `<button class="btn btn-secondary btn-xs" onclick="showPage('appt-items',{apptId:'${a.id}'})">สินค้า</button>
+          <button class="btn btn-ghost btn-xs" onclick="openEditApptModal('${a.id}')">แก้ไข</button>
+          <button class="btn btn-danger btn-xs" onclick="confirmCancel('${a.id}')">ยกเลิก</button>` : '<span style="font-size:.75rem;color:#aaa;">ยกเลิกแล้ว</span>'}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function changeScheduleDate(delta) {
+  const d = new Date(state.scheduleDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  state.scheduleDate = d.toISOString().slice(0,10);
+  document.getElementById('schedule-date').value = state.scheduleDate;
+  loadSchedule();
+}
+function goToday() {
+  state.scheduleDate = todayStr();
+  document.getElementById('schedule-date').value = state.scheduleDate;
+  loadSchedule();
+}
+
+// ─────────────────────────────────────────────────────
+//  NEW / EDIT APPOINTMENT
+// ─────────────────────────────────────────────────────
+function initNewAppt(opts={}) {
+  if (opts.editId) {
+    // handled by openEditApptModal instead
+    document.getElementById('new-appt-title').textContent = 'แก้ไขนัดหมาย';
+    document.getElementById('edit-appt-id').value = opts.editId;
+    const a = state.appointments.find(a => a.id === opts.editId);
+    if (a) {
+      document.getElementById('appt-date').value = a.date;
+      buildTimeOptions(document.getElementById('appt-time'), a.time);
+      document.getElementById('appt-name').value = a.customerName;
+      document.getElementById('appt-phone').value = a.phone;
+      document.getElementById('appt-notes').value = a.notes || '';
+    }
+  } else {
+    document.getElementById('new-appt-title').textContent = 'นัดหมายใหม่';
+    document.getElementById('edit-appt-id').value = '';
+    document.getElementById('appt-date').value = state.scheduleDate || todayStr();
+    buildTimeOptions(document.getElementById('appt-time'), '10:00');
+    document.getElementById('appt-name').value = '';
+    document.getElementById('appt-phone').value = '';
+    document.getElementById('appt-notes').value = '';
+  }
+  document.getElementById('appt-form-error').style.display = 'none';
+}
+
+function saveAppointment() {
+  const date  = document.getElementById('appt-date').value;
+  const time  = document.getElementById('appt-time').value;
+  const name  = document.getElementById('appt-name').value.trim();
+  const phone = document.getElementById('appt-phone').value.trim();
+  const notes = document.getElementById('appt-notes').value.trim();
+  const errEl = document.getElementById('appt-form-error');
+
+  if (!date || !time || !name || !phone) {
+    errEl.textContent = 'กรุณากรอกข้อมูลที่จำเป็น (วันที่ เวลา ชื่อ เบอร์โทร)';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const editId = document.getElementById('edit-appt-id').value;
+  if (editId) {
+    const a = state.appointments.find(a => a.id === editId);
+    if (a) { a.date = date; a.time = time; a.customerName = name; a.phone = phone; a.notes = notes; }
+  } else {
+    const appt = {
+      id: 'APT_' + Date.now(),
+      date, time,
+      customerName: name,
+      phone, notes,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+    state.appointments.push(appt);
+    gsCall({ action:'createAppointment', data: appt });
+  }
+
+  saveLocal();
+  showToast('บันทึกนัดหมายสำเร็จ ✓');
+  showPage('schedule');
+}
+
+function openEditApptModal(id) {
+  const a = state.appointments.find(a => a.id === id);
+  if (!a) return;
+  document.getElementById('ea-id').value   = id;
+  document.getElementById('ea-date').value = a.date;
+  buildTimeOptions(document.getElementById('ea-time'), a.time);
+  document.getElementById('ea-name').value  = a.customerName;
+  document.getElementById('ea-phone').value = a.phone;
+  document.getElementById('ea-notes').value = a.notes || '';
+  openModal('modal-edit-appt');
+}
+function updateAppointment() {
+  const id    = document.getElementById('ea-id').value;
+  const date  = document.getElementById('ea-date').value;
+  const time  = document.getElementById('ea-time').value;
+  const name  = document.getElementById('ea-name').value.trim();
+  const phone = document.getElementById('ea-phone').value.trim();
+  const notes = document.getElementById('ea-notes').value.trim();
+  const a = state.appointments.find(a => a.id === id);
+  if (a) { a.date = date; a.time = time; a.customerName = name; a.phone = phone; a.notes = notes; }
+  saveLocal();
+  gsCall({ action:'updateAppointment', data:{ id, date, time, customerName:name, phone, notes } });
+  closeModal('modal-edit-appt');
+  loadSchedule();
+  showToast('อัปเดตนัดหมายแล้ว ✓');
+}
+function confirmCancel(id) {
+  const a = state.appointments.find(a => a.id === id);
+  showConfirm('ยืนยันยกเลิกนัด', `ยืนยันยกเลิกนัดของ "${a?.customerName}" เวลา ${a?.time} หรือไม่?`, () => {
+    if (a) a.status = 'cancelled';
+    saveLocal();
+    gsCall({ action:'updateAppointment', data:{ id, status:'cancelled' } });
+    loadSchedule();
+    showToast('ยกเลิกนัดหมายแล้ว');
+  });
+}
+
+// ─────────────────────────────────────────────────────
+//  APPOINTMENT ITEMS PAGE
+// ─────────────────────────────────────────────────────
+function initApptItems(apptId) {
+  state.currentApptId = apptId;
+  const a = state.appointments.find(a => a.id === apptId);
+  if (!a) return;
+
+  document.getElementById('appt-items-title').textContent = `สินค้าของ ${a.customerName}`;
+  document.getElementById('appt-customer-name').textContent = a.customerName;
+  document.getElementById('appt-customer-phone').textContent = a.phone;
+  const d = new Date(a.date + 'T00:00:00');
+  document.getElementById('appt-datetime').textContent =
+    d.toLocaleDateString('th-TH', {day:'numeric', month:'long', year:'numeric'}) + ' เวลา ' + a.time;
+
+  renderItemsList();
+}
+
+function renderItemsList() {
+  const apptId = state.currentApptId;
+  const items = state.items.filter(i => i.apptId === apptId);
+
+  // Summary
+  const totalAmt = items.filter(i=>i.confirmed).reduce((s,i)=>s+(parseFloat(i.agreedPrice)||0),0);
+  const inspected = items.filter(i=>i.inspectionStatus==='completed').length;
+  const transferred = items.filter(i=>i.transferStatus==='transferred').length;
+  document.getElementById('summary-item-count').textContent = items.length + ' ชิ้น';
+  document.getElementById('summary-total').textContent = '฿' + totalAmt.toLocaleString();
+  document.getElementById('summary-inspected').textContent = inspected + ' / ' + items.length + ' ชิ้น';
+  document.getElementById('summary-transfer').innerHTML = transferred > 0
+    ? '<span class="badge badge-success">โอนแล้ว ' + transferred + ' ชิ้น</span>'
+    : '<span class="badge badge-warning">ยังไม่โอน</span>';
+
+  const cont = document.getElementById('items-list-container');
+  if (items.length === 0) {
+    cont.innerHTML = '<div style="text-align:center;padding:40px;color:#aaa;">ยังไม่มีสินค้า กด "+ เพิ่มสินค้า"</div>';
+    return;
+  }
+
+  cont.innerHTML = items.map((item,idx) => {
+    const insp = state.inspections.find(ins => ins.itemId === item.id);
+    const condLabel = insp ? CONDITION_LABELS[insp.condition] || insp.condition : null;
+    const condColor = {NEW:'var(--success)', KEPT:'#0369a1', LIKENEW:'#7c3aed', USED:'var(--warning)'}[insp?.condition] || '#888';
+    return `<div class="item-card ${item.inspectionStatus === 'completed' ? 'inspected' : ''} ${item.confirmed ? 'confirmed' : ''}">
+      <div class="item-card-top">
+        <div class="item-card-info">
+          <h4>${idx+1}. ${item.brand} ${item.model}${item.size ? ' Size ' + item.size : ''}</h4>
+          <p>${TYPE_LABELS[item.type] || item.type}
+          ${item.agreedPrice > 0 ? ' · <strong style="color:var(--blue);">฿' + parseFloat(item.agreedPrice).toLocaleString() + '</strong>' : ''}</p>
+        </div>
+        <div class="item-card-actions">
+          <button class="btn btn-secondary btn-xs" onclick="openEditItemModal('${item.id}')">แก้ไข</button>
+          <button class="btn btn-primary btn-xs" onclick="showPage('inspect',{itemId:'${item.id}'})">ตรวจสภาพ</button>
+          <button class="btn btn-danger btn-xs" onclick="confirmDeleteItem('${item.id}')">ลบ</button>
+        </div>
+      </div>
+      <div class="item-card-footer">
+        ${condLabel ? `<span style="font-weight:700;color:${condColor};font-size:.82rem;font-family:'Work Sans',sans-serif;">${condLabel}</span>` : '<span style="font-size:.78rem;color:#aaa;">ยังไม่ตรวจ</span>'}
+        ${insp ? `<span class="badge badge-gray">คะแนน: ${insp.totalScore}</span>` : ''}
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.8rem;">
+            <input type="checkbox" ${item.transferStatus === 'transferred' ? 'checked' : ''} onchange="toggleTransfer('${item.id}', this.checked)">
+            โอนเงินแล้ว
+          </label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:.8rem;">
+            <input type="checkbox" ${item.confirmed ? 'checked' : ''} onchange="toggleConfirm('${item.id}', this.checked)">
+            ยืนยันรับสินค้า
+          </label>
+          ${item.inspectionStatus === 'completed' ? `<button class="btn btn-ghost btn-xs" onclick="printItemInspection('${item.id}')">🖨 PDF</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTransfer(itemId, val) {
+  const item = state.items.find(i => i.id === itemId);
+  if (item) { item.transferStatus = val ? 'transferred' : 'pending'; }
+  saveLocal();
+  gsCall({ action:'updateItem', data:{ id:itemId, transferStatus: val ? 'transferred' : 'pending' } });
+  renderItemsList();
+}
+function toggleConfirm(itemId, val) {
+  const item = state.items.find(i => i.id === itemId);
+  if (item) { item.confirmed = val; }
+  saveLocal();
+  gsCall({ action:'updateItem', data:{ id:itemId, confirmed: val } });
+  renderItemsList();
+  showToast(val ? 'ยืนยันรับสินค้าแล้ว — นับรวมวงเงินแล้ว' : 'ยกเลิกการยืนยัน');
+}
+function confirmDeleteItem(itemId) {
+  showConfirm('ลบสินค้า', 'ต้องการลบสินค้านี้ออกจากรายการหรือไม่?', () => {
+    state.items = state.items.filter(i => i.id !== itemId);
+    state.inspections = state.inspections.filter(ins => ins.itemId !== itemId);
+    saveLocal();
+    renderItemsList();
+    showToast('ลบสินค้าแล้ว');
+  });
+}
+
+// ─────────────────────────────────────────────────────
+//  ADD / EDIT ITEM MODAL
+// ─────────────────────────────────────────────────────
+function openAddItemModal() {
+  document.getElementById('modal-item-title').textContent = 'เพิ่มสินค้า';
+  document.getElementById('modal-item-id').value = '';
+  document.getElementById('item-type').value = '';
+  document.getElementById('item-brand').value = '';
+  document.getElementById('item-model').value = '';
+  document.getElementById('item-size').value  = '';
+  document.getElementById('item-price').value = '';
+  document.getElementById('item-modal-error').style.display = 'none';
+  openModal('modal-item');
+}
+function openEditItemModal(itemId) {
+  const item = state.items.find(i => i.id === itemId);
+  if (!item) return;
+  document.getElementById('modal-item-title').textContent = 'แก้ไขสินค้า';
+  document.getElementById('modal-item-id').value  = itemId;
+  document.getElementById('item-type').value  = item.type;
+  document.getElementById('item-brand').value = item.brand;
+  document.getElementById('item-model').value = item.model;
+  document.getElementById('item-size').value  = item.size || '';
+  document.getElementById('item-price').value = item.agreedPrice || '';
+  document.getElementById('item-modal-error').style.display = 'none';
+  openModal('modal-item');
+}
+function saveItem() {
+  const type  = document.getElementById('item-type').value;
+  const brand = document.getElementById('item-brand').value.trim();
+  const model = document.getElementById('item-model').value.trim();
+  const size  = document.getElementById('item-size').value.trim();
+  const price = document.getElementById('item-price').value;
+  const errEl = document.getElementById('item-modal-error');
+  if (!type || !brand || !model) {
+    errEl.textContent = 'กรุณาเลือกประเภท และกรอก Brand / Model';
+    errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+
+  const editId = document.getElementById('modal-item-id').value;
+  if (editId) {
+    const item = state.items.find(i => i.id === editId);
+    if (item) { item.type = type; item.brand = brand; item.model = model; item.size = size; item.agreedPrice = parseFloat(price)||0; }
+    gsCall({ action:'updateItem', data:{ id:editId, type, brand, model, size, agreedPrice: parseFloat(price)||0 } });
+  } else {
+    const newItem = {
+      id: 'ITM_' + Date.now(),
+      apptId: state.currentApptId,
+      type, brand, model, size,
+      agreedPrice: parseFloat(price) || 0,
+      receiptStatus: 'pending',
+      transferStatus: 'pending',
+      inspectionStatus: 'pending',
+      confirmed: false,
+      createdAt: new Date().toISOString()
+    };
+    state.items.push(newItem);
+    gsCall({ action:'createItem', data: newItem });
+  }
+  saveLocal();
+  closeModal('modal-item');
+  renderItemsList();
+  showToast('บันทึกสินค้าแล้ว ✓');
+}
+
+// ─────────────────────────────────────────────────────
+//  INSPECTION FORM
+// ─────────────────────────────────────────────────────
+let inspState = { itemId:null, type:null, manualCondition:null };
+
+function initInspect(itemId) {
+  inspState.itemId = itemId;
+  inspState.manualCondition = null;
+
+  const item = state.items.find(i => i.id === itemId);
+  if (!item) return;
+  inspState.type = item.type;
+
+  const appt = state.appointments.find(a => a.id === item.apptId);
+  document.getElementById('inspect-type-label').textContent = TYPE_LABELS[item.type] || item.type;
+  document.getElementById('inspect-product-name').textContent = `${item.brand} ${item.model}`;
+  document.getElementById('inspect-product-size').textContent = item.size ? 'Size ' + item.size : '';
+  document.getElementById('inspect-customer-name').textContent = appt ? appt.customerName : '—';
+  document.getElementById('agreed-price').value = item.agreedPrice || '';
+
+  // Back button
+  document.getElementById('inspect-back-btn').onclick = () => showPage('appt-items', { apptId: item.apptId });
+
+  // Responsive grid on mobile
+  const grid = document.getElementById('inspect-grid');
+  if (window.innerWidth < 768) grid.style.gridTemplateColumns = '1fr';
+  else grid.style.gridTemplateColumns = '1fr 1fr';
+
+  // Load existing inspection
+  const existing = state.inspections.find(ins => ins.itemId === itemId);
+
+  // Date
+  document.getElementById('inspect-date').value = existing?.inspectionDate || todayStr();
+  document.getElementById('inspector-name').value = existing?.inspector || localStorage.getItem('ff_inspector') || '';
+  document.getElementById('inspect-notes').value = existing?.notes || '';
+
+  // Customer used
+  const usedVal = existing?.customerUsedInfo || 'unused';
+  document.getElementById('radio-unused').checked = usedVal === 'unused';
+  document.getElementById('radio-used').checked   = usedVal === 'used';
+  styleCustomerInfo();
+
+  // Build accessories
+  buildAccessoriesUI(item.type, existing?.accessories || {});
+
+  // Build condition scoring
+  buildConditionUI(item.type, existing?.conditionScores || {});
+
+  // If existing, set manual condition
+  if (existing?.condition) {
+    inspState.manualCondition = existing.condition;
+    selectCondition(existing.condition);
+  }
+
+  calcScore();
+}
+
+function buildAccessoriesUI(type, saved) {
+  const items = ACCESSORIES[type] || ACCESSORIES.acc;
+  const cont = document.getElementById('accessories-list');
+  cont.innerHTML = items.map(acc => {
+    if (acc.isText) {
+      return `<div class="check-row">
+        <span class="check-name">${acc.name}</span>
+        ${acc.grade ? `<span class="check-grade">${acc.grade}</span>` : ''}
+        <input type="text" class="form-control" id="acc_${acc.id}" value="${saved[acc.id]||''}" placeholder="ระบุ..." style="width:120px;padding:4px 8px;font-size:.82rem;">
+      </div>`;
+    }
+    const hasItem = saved[acc.id] !== undefined ? saved[acc.id] : null;
+    return `<div class="check-row">
+      <span class="check-name">${acc.name}</span>
+      ${acc.grade ? `<span class="check-grade">${acc.grade}</span>` : ''}
+      <div class="check-toggle">
+        <label class="yes"><input type="radio" name="acc_${acc.id}" value="yes" ${hasItem===true?'checked':''} onchange="calcScore()">มี</label>
+        <label class="no"><input type="radio" name="acc_${acc.id}" value="no"  ${hasItem===false?'checked':''} onchange="calcScore()">ไม่มี</label>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function buildConditionUI(type, saved) {
+  const conds = CONDITIONS[type] || CONDITIONS.acc;
+  const cont = document.getElementById('condition-list');
+  cont.innerHTML = conds.map(c => {
+    return `<div class="cond-row">
+      <div class="cond-name">${c.name}</div>
+      <div class="cond-options">
+        ${c.opts.map(opt => {
+          const checked = saved[c.id] === opt.s ? 'checked' : '';
+          return `<input type="radio" class="cond-opt" name="cond_${c.id}" id="cond_${c.id}_${opt.s}" value="${opt.s}" ${checked} onchange="calcScore()">
+                  <label for="cond_${c.id}_${opt.s}">${opt.l} (${opt.s})</label>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function calcScore() {
+  const type = inspState.type;
+  const conds = CONDITIONS[type] || CONDITIONS.acc;
+  let score = 0;
+  let allSelected = true;
+  conds.forEach(c => {
+    const sel = document.querySelector(`input[name="cond_${c.id}"]:checked`);
+    if (sel) score += parseInt(sel.value);
+    else allSelected = false;
+  });
+
+  document.getElementById('total-score').textContent = allSelected ? score : '—';
+
+  // Auto-suggest condition
+  if (allSelected && !inspState.manualCondition) {
+    let auto;
+    if (score >= 95) auto = 'NEW';
+    else if (score >= 85) auto = 'KEPT';
+    else if (score >= 75) auto = 'LIKENEW';
+    else auto = 'USED';
+    highlightConditionBtn(auto);
+  } else if (inspState.manualCondition) {
+    highlightConditionBtn(inspState.manualCondition);
+  }
+}
+
+function selectCondition(c) {
+  inspState.manualCondition = c;
+  highlightConditionBtn(c);
+}
+function highlightConditionBtn(c) {
+  document.querySelectorAll('.condition-btn').forEach(btn => {
+    btn.className = 'condition-btn';
+    if (btn.dataset.c === c) btn.className += ' selected-' + c;
+  });
+}
+
+function styleCustomerInfo() {
+  const isUnused = document.getElementById('radio-unused').checked;
+  document.getElementById('lbl-unused').style.borderColor = isUnused ? 'var(--blue)' : 'var(--elevated)';
+  document.getElementById('lbl-unused').style.background  = isUnused ? 'var(--blue-light)' : '';
+  document.getElementById('lbl-used').style.borderColor   = !isUnused ? 'var(--warning)' : 'var(--elevated)';
+  document.getElementById('lbl-used').style.background    = !isUnused ? 'var(--warning-bg)' : '';
+}
+
+function getInspectionData() {
+  const type = inspState.type;
+  const items = ACCESSORIES[type] || ACCESSORIES.acc;
+  const conds = CONDITIONS[type] || CONDITIONS.acc;
+
+  const accessories = {};
+  items.forEach(acc => {
+    if (acc.isText) {
+      accessories[acc.id] = document.getElementById('acc_'+acc.id)?.value || '';
+    } else {
+      const sel = document.querySelector(`input[name="acc_${acc.id}"]:checked`);
+      accessories[acc.id] = sel ? sel.value === 'yes' : null;
+    }
+  });
+
+  const conditionScores = {};
+  let totalScore = 0; let allSelected = true;
+  conds.forEach(c => {
+    const sel = document.querySelector(`input[name="cond_${c.id}"]:checked`);
+    if (sel) { const v = parseInt(sel.value); conditionScores[c.id] = v; totalScore += v; }
+    else allSelected = false;
+  });
+
+  let autoCondition;
+  if (allSelected) {
+    if (totalScore >= 95) autoCondition = 'NEW';
+    else if (totalScore >= 85) autoCondition = 'KEPT';
+    else if (totalScore >= 75) autoCondition = 'LIKENEW';
+    else autoCondition = 'USED';
+  }
+  const condition = inspState.manualCondition || autoCondition || null;
+
+  return {
+    accessories, conditionScores, totalScore: allSelected ? totalScore : null, condition,
+    customerUsedInfo: document.getElementById('radio-unused').checked ? 'unused' : 'used',
+    inspector: document.getElementById('inspector-name').value.trim(),
+    inspectionDate: document.getElementById('inspect-date').value,
+    notes: document.getElementById('inspect-notes').value.trim()
+  };
+}
+
+function saveInspection() {
+  const data = getInspectionData();
+  if (!data.condition) { showToast('⚠️ กรุณาเลือก Condition'); return; }
+
+  const itemId = inspState.itemId;
+  const existing = state.inspections.find(ins => ins.itemId === itemId);
+  const inspector = data.inspector;
+  if (inspector) localStorage.setItem('ff_inspector', inspector);
+
+  const agreedPrice = parseFloat(document.getElementById('agreed-price').value) || 0;
+  const item = state.items.find(i => i.id === itemId);
+  if (item) { item.agreedPrice = agreedPrice; item.inspectionStatus = 'completed'; }
+
+  const insRecord = {
+    id: existing?.id || 'INS_' + Date.now(),
+    itemId,
+    productType: inspState.type,
+    ...data,
+    updatedAt: new Date().toISOString(),
+    createdAt: existing?.createdAt || new Date().toISOString()
+  };
+
+  if (existing) {
+    const idx = state.inspections.indexOf(existing);
+    state.inspections[idx] = insRecord;
+  } else {
+    state.inspections.push(insRecord);
+  }
+
+  saveLocal();
+  gsCall({ action:'saveInspection', data: insRecord });
+  gsCall({ action:'updateItem', data:{ id:itemId, agreedPrice, inspectionStatus:'completed' } });
+  showToast('บันทึกการตรวจสภาพแล้ว ✓');
+  setTimeout(() => showPage('appt-items', { apptId: item?.apptId }), 1000);
+}
+
+// ─────────────────────────────────────────────────────
+//  PRINT / PDF
+// ─────────────────────────────────────────────────────
+function printItemInspection(itemId) {
+  const item = state.items.find(i => i.id === itemId);
+  const insp = state.inspections.find(ins => ins.itemId === itemId);
+  if (!item || !insp) { showToast('ยังไม่มีข้อมูลการตรวจ'); return; }
+  const appt = state.appointments.find(a => a.id === item.apptId);
+  buildPrintView(item, insp, appt);
+  window.print();
+}
+function printInspectionForm() {
+  const itemId = inspState.itemId;
+  const item   = state.items.find(i => i.id === itemId);
+  const appt   = state.appointments.find(a => a.id === item?.apptId);
+  const data   = getInspectionData();
+  buildPrintView(item, data, appt);
+  window.print();
+}
+function buildPrintView(item, insp, appt) {
+  const pv = document.getElementById('print-view');
+  const typeLabel = TYPE_LABELS[item.type] || item.type;
+  document.getElementById('pv-product').textContent = `${typeLabel} — ${item.brand} ${item.model}`;
+  document.getElementById('pv-size').textContent = item.size || '—';
+  document.getElementById('pv-date').textContent = insp.inspectionDate || todayStr();
+  document.getElementById('pv-customer').textContent = appt?.customerName || '—';
+  document.getElementById('pv-used-info').textContent = insp.customerUsedInfo === 'unused' ? 'ไม่เคยใช้งาน' : 'ผ่านการใช้งาน';
+  document.getElementById('pv-inspector').textContent = insp.inspector || '—';
+  document.getElementById('pv-inspect-date').textContent = insp.inspectionDate || '—';
+
+  const accItems = ACCESSORIES[item.type] || ACCESSORIES.acc;
+  const condItems = CONDITIONS[item.type] || CONDITIONS.acc;
+  const condLabel = {NEW:'NEW (95-100)',KEPT:'KEPT UNUSED (85-95)',LIKENEW:'LIKE NEW (75-85)',USED:'USED (<75)'}[insp.condition] || '—';
+
+  const accHTML = `<table class="pf-table">
+    <tr><th colspan="3">อุปกรณ์ — ${typeLabel}</th></tr>
+    <tr><th>รายการ</th><th>มี/ไม่มี</th><th>Grade</th></tr>
+    ${accItems.map(a => {
+      if (a.isText) {
+        return `<tr><td>${a.name}</td><td colspan="2">${insp.accessories?.[a.id]||''}</td></tr>`;
+      }
+      const v = insp.accessories?.[a.id];
+      return `<tr><td>${a.name}</td><td>${v===true?'✓ มี':v===false?'✗ ไม่มี':'—'}</td><td>${a.grade||''}</td></tr>`;
+    }).join('')}
+  </table>`;
+
+  const condHTML = `<table class="pf-table">
+    <tr><th colspan="2">ตรวจสภาพ (100 คะแนน)</th></tr>
+    <tr><th>หัวข้อ</th><th>คะแนน</th></tr>
+    ${condItems.map(c => {
+      const score = insp.conditionScores?.[c.id];
+      const opt = c.opts.find(o => o.s === score);
+      return `<tr><td>${c.name}</td><td>${opt ? opt.l + ' (' + score + ')' : '—'}</td></tr>`;
+    }).join('')}
+    <tr style="background:#e8edf5;font-weight:700;"><td>รวม</td><td>${insp.totalScore ?? '—'}</td></tr>
+  </table>
+  <div class="pf-score-box" style="margin-top:10pt;">
+    <div class="pf-score-num">${insp.totalScore ?? '—'}</div>
+    <div style="font-size:9pt;margin-top:4pt;">คะแนนรวม</div>
+  </div>
+  <div class="pf-condition-row">
+    ${['NEW (95-100)','KEPT UNUSED (85-95)','LIKE NEW (75-85)','USED (<75)'].map(l => {
+      const isSelected = condLabel === l;
+      return `<div class="pf-cond-item">
+        <span class="pf-check" style="${isSelected?'background:#1F3151;color:white;border-color:#1F3151;':''}"> ${isSelected?'✓':''} </span>${l}
+      </div>`;
+    }).join('')}
+  </div>
+  ${insp.notes ? `<div style="margin-top:8pt;font-size:8.5pt;"><strong>หมายเหตุ:</strong> ${insp.notes}</div>` : ''}`;
+
+  document.getElementById('pv-body').innerHTML = `<div>${accHTML}</div><div>${condHTML}</div>`;
+  pv.classList.add('printing');
+  setTimeout(() => pv.classList.remove('printing'), 2000);
+}
+
+// ─────────────────────────────────────────────────────
+//  SETTINGS
+// ─────────────────────────────────────────────────────
+function initSettings() {
+  document.getElementById('gs-url').value = state.settings.gsUrl || '';
+  document.getElementById('daily-limit-input').value = state.settings.dailyLimit || 2000000;
+}
+function saveSettings() {
+  state.settings.gsUrl = document.getElementById('gs-url').value.trim();
+  saveSettingsLocal();
+  updateSyncIndicator();
+  showToast('บันทึก Settings แล้ว ✓');
+}
+function saveDailyLimit() {
+  const v = parseFloat(document.getElementById('daily-limit-input').value);
+  if (!isNaN(v) && v >= 0) {
+    state.settings.dailyLimit = v;
+    saveSettingsLocal();
+    showToast('บันทึกวงเงินแล้ว ✓');
+  }
+}
+async function testConnection() {
+  const statusEl = document.getElementById('conn-status');
+  statusEl.innerHTML = '<span style="font-size:.8rem;color:#888;">กำลังทดสอบ...</span>';
+  const res = await gsGet({ action:'ping' });
+  if (res && res.success) {
+    statusEl.innerHTML = '<span style="font-size:.8rem;color:var(--success);">✓ เชื่อมต่อสำเร็จ</span>';
+    updateSyncIndicator(true);
+  } else {
+    statusEl.innerHTML = '<span style="font-size:.8rem;color:var(--danger);">✗ เชื่อมต่อไม่สำเร็จ — ตรวจสอบ URL</span>';
+    updateSyncIndicator(false);
+  }
+}
+function updateSyncIndicator(ok) {
+  const dot  = document.getElementById('sync-dot');
+  const text = document.getElementById('sync-text');
+  if (ok === undefined) { ok = !!state.settings.gsUrl; }
+  dot.className = 'sync-dot ' + (ok ? 'ok' : (state.settings.gsUrl ? 'err' : ''));
+  text.textContent = ok ? 'เชื่อม Sheets แล้ว' : (state.settings.gsUrl ? 'ยังไม่ได้ทดสอบ' : 'ไม่ได้เชื่อม Sheets');
+}
+
+// ─────────────────────────────────────────────────────
+//  HELPERS: MODAL, TOAST, CONFIRM
+// ─────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+let toastTimer;
+function showToast(msg, duration=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function showConfirm(title, body, onOk) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-body').textContent  = body;
+  const btn = document.getElementById('confirm-ok-btn');
+  btn.onclick = () => { onOk(); closeModal('modal-confirm'); };
+  openModal('modal-confirm');
+}
+
+function statusBadgeHTML(status) {
+  const map = {
+    pending:   ['badge-blue',    'รอลูกค้า'],
+    arrived:   ['badge-warning', 'ลูกค้ามาแล้ว'],
+    completed: ['badge-success', 'เสร็จสิ้น'],
+    cancelled: ['badge-danger',  'ยกเลิก']
+  };
+  const [cls, lbl] = map[status] || ['badge-gray', status];
+  return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+// ─────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────
+function init() {
+  loadLocal();
+  buildTimeOptions(document.getElementById('appt-time'), '10:00');
+  buildTimeOptions(document.getElementById('ea-time'), '10:00');
+  updateSyncIndicator();
+  showPage('dashboard');
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  // Responsive inspection grid
+  window.addEventListener('resize', () => {
+    if (state.currentPage === 'inspect') {
+      const grid = document.getElementById('inspect-grid');
+      grid.style.gridTemplateColumns = window.innerWidth < 768 ? '1fr' : '1fr 1fr';
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
